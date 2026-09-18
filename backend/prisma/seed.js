@@ -5,10 +5,10 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function main() {
-  const adminPassword = await bcrypt.hash('Admin@123', 10);
+  const adminPassword = await bcrypt.hash('password', 10);
   await prisma.user.upsert({
     where: { email: 'admin@example.com' },
-    update: {},
+    update: { password: adminPassword },
     create: {
       name: 'System Admin',
       email: 'admin@example.com',
@@ -17,7 +17,7 @@ async function main() {
       role: 'ADMIN',
     },
   });
-  console.log('Seeded admin: admin@example.com / Admin@123');
+  console.log('Seeded admin: admin@example.com / password');
 
   const doctors = [
     { name: 'Dr. John Smith', email: 'john@example.com', phone: '+91 98765 43210', specialization: 'Cardiologist' },
