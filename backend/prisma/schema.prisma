@@ -1,0 +1,108 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  PATIENT
+}
+
+enum DoctorStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum AppointmentStatus {
+  BOOKED
+  CANCELLED
+}
+
+model User {
+  id           String        @id @default(uuid())
+  name         String
+  email        String        @unique
+  phone        String?
+  password     String
+  role         Role          @default(PATIENT)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  appointments Appointment[]
+
+  @@map("users")
+}
+
+model Doctor {
+  id             String       @id @default(uuid())
+  name           String
+  email          String       @unique
+  phone          String?
+  specialization String
+  status         DoctorStatus @default(ACTIVE)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  availabilities DoctorAvailability[]
+  breaks         DoctorBreak[]
+  appointments   Appointment[]
+
+  @@map("doctors")
+}
+
+// A doctor can have multiple non-overlapping availability periods on the
+// same date (e.g. 09:00-13:00 and 14:00-17:00), so there is no longer a
+// doctorId+date uniqueness constraint here. Overlap is enforced in the
+// service layer.
+model DoctorAvailability {
+  id        String   @id @default(uuid())
+  doctorId  String
+  date      DateTime @db.Date
+  startTime String
+  endTime   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@index([doctorId, date])
+  @@map("doctor_availabilities")
+}
+
+// A break blocks appointment slots within it. Kept as its own entity
+// (never stored as an appointment) so it can be added/removed independently.
+model DoctorBreak {
+  id        String   @id @default(uuid())
+  doctorId  String
+  date      DateTime @db.Date
+  startTime String
+  endTime   String
+  reason    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  doctor Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+
+  @@index([doctorId, date])
+  @@map("doctor_breaks")
+}
+
+model Appointment {
+  id                String            @id @default(uuid())
+  doctorId          String
+  patientId         String
+  appointmentDate   DateTime          @db.Date
+  startTime         String
+  endTime           String
+  status            AppointmentStatus @default(BOOKED)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  doctor  Doctor @relation(fields: [doctorId], references: [id])
+  patient User   @relation(fields: [patientId], references: [id])
+
+  @@map("appointments")
+}

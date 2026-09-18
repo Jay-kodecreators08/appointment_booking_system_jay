@@ -1,0 +1,296 @@
+{
+  "info": {
+    "name": "Appointment Booking System",
+    "description": "API collection for the Appointment Booking System. Set the `baseUrl`, `adminToken` and `patientToken` collection variables after logging in.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5001/api" },
+    { "key": "adminToken", "value": "" },
+    { "key": "patientToken", "value": "" },
+    { "key": "doctorId", "value": "" },
+    { "key": "appointmentId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register Patient",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alice Patient\",\n  \"email\": \"alice@example.com\",\n  \"phone\": \"+911234567890\",\n  \"password\": \"pass123\",\n  \"confirmPassword\": \"pass123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Patient Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"alice@example.com\",\n  \"password\": \"pass123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Admin Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/auth/admin-login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"Admin@123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{patientToken}}" }],
+            "url": "{{baseUrl}}/auth/me"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin - Doctors",
+      "item": [
+        {
+          "name": "Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": "{{baseUrl}}/admin/dashboard"
+          }
+        },
+        {
+          "name": "List Doctors",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": "{{baseUrl}}/admin/doctors"
+          }
+        },
+        {
+          "name": "Create Doctor",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/admin/doctors",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dr. John Smith\",\n  \"email\": \"john@example.com\",\n  \"phone\": \"+919876543210\",\n  \"specialization\": \"Cardiologist\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Doctor",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/admin/doctors/{{doctorId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dr. John Smith\",\n  \"email\": \"john@example.com\",\n  \"phone\": \"+919876543210\",\n  \"specialization\": \"Cardiologist\",\n  \"status\": \"ACTIVE\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Deactivate Doctor",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": "{{baseUrl}}/admin/doctors/{{doctorId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin - Availability",
+      "item": [
+        {
+          "name": "List Availability",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": "{{baseUrl}}/admin/availability"
+          }
+        },
+        {
+          "name": "Add Availability Period",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/admin/availability",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"doctorId\": \"{{doctorId}}\",\n  \"date\": \"2026-09-25\",\n  \"startTime\": \"09:00\",\n  \"endTime\": \"13:00\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Add Second Availability Period (same day)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/admin/availability",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"doctorId\": \"{{doctorId}}\",\n  \"date\": \"2026-09-25\",\n  \"startTime\": \"14:00\",\n  \"endTime\": \"17:00\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Availability",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": "{{baseUrl}}/admin/availability/:id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin - Breaks",
+      "item": [
+        {
+          "name": "List Breaks",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": "{{baseUrl}}/admin/breaks"
+          }
+        },
+        {
+          "name": "Add Break (auto-reschedules affected appointments)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/admin/breaks",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"doctorId\": \"{{doctorId}}\",\n  \"date\": \"2026-09-25\",\n  \"startTime\": \"10:30\",\n  \"endTime\": \"11:30\",\n  \"reason\": \"Doctor meeting\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Break",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/admin/breaks/:id",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startTime\": \"10:30\",\n  \"endTime\": \"12:00\",\n  \"reason\": \"Doctor meeting (extended)\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Break",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": "{{baseUrl}}/admin/breaks/:id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin - Appointments",
+      "item": [
+        {
+          "name": "List All Appointments",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": "{{baseUrl}}/admin/appointments"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Patient - Doctors & Slots",
+      "item": [
+        {
+          "name": "List Active Doctors",
+          "request": { "method": "GET", "url": "{{baseUrl}}/doctors" }
+        },
+        {
+          "name": "Get Doctor",
+          "request": { "method": "GET", "url": "{{baseUrl}}/doctors/{{doctorId}}" }
+        },
+        {
+          "name": "Get Doctor Availability for Date",
+          "request": { "method": "GET", "url": "{{baseUrl}}/doctors/{{doctorId}}/availability?date=2026-09-25" }
+        },
+        {
+          "name": "Get Doctor Slots for Date",
+          "request": { "method": "GET", "url": "{{baseUrl}}/doctors/{{doctorId}}/slots?date=2026-09-25" }
+        }
+      ]
+    },
+    {
+      "name": "Patient - Appointments",
+      "item": [
+        {
+          "name": "Book Appointment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{patientToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/appointments",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"doctorId\": \"{{doctorId}}\",\n  \"appointmentDate\": \"2026-09-25\",\n  \"startTime\": \"09:30\"\n}"
+            }
+          }
+        },
+        {
+          "name": "My Appointments",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{patientToken}}" }],
+            "url": "{{baseUrl}}/appointments/my"
+          }
+        },
+        {
+          "name": "Cancel Appointment",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{patientToken}}" }],
+            "url": "{{baseUrl}}/appointments/{{appointmentId}}/cancel"
+          }
+        }
+      ]
+    }
+  ]
+}
