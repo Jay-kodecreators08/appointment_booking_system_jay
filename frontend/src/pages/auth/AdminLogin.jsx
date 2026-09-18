@@ -8,7 +8,7 @@ export default function AdminLogin() {
   const { adminLogin, loading } = useAuth();
   const { notify } = useNotification();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({ email: 'admin@example.com', password: 'Admin@123' });
   const [error, setError] = useState('');
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
