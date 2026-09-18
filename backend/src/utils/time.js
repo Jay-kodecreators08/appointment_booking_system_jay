@@ -34,11 +34,6 @@ function generateSlots(startTime, endTime, durationMinutes = SLOT_DURATION_MINUT
   return slots;
 }
 
-function isAlignedToSlot(startTime, availabilityStartTime, durationMinutes = SLOT_DURATION_MINUTES) {
-  const diff = timeToMinutes(startTime) - timeToMinutes(availabilityStartTime);
-  return diff >= 0 && diff % durationMinutes === 0;
-}
-
 // Half-open interval overlap: touching ranges (13:00-14:00 followed by
 // 14:00-15:00) are NOT considered overlapping.
 function rangesOverlap(startA, endA, startB, endB) {
@@ -51,6 +46,5 @@ module.exports = {
   minutesToTime,
   isValidTimeFormat,
   generateSlots,
-  isAlignedToSlot,
   rangesOverlap,
 };

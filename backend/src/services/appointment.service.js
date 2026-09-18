@@ -1,6 +1,6 @@
 const prisma = require('../config/prisma');
 const AppError = require('../utils/AppError');
-const { generateSlots, isValidTimeFormat, isAlignedToSlot, rangesOverlap, SLOT_DURATION_MINUTES } = require('../utils/time');
+const { generateSlots, isValidTimeFormat, rangesOverlap } = require('../utils/time');
 const { parseDateOnly, formatDateOnly, isValidDateString, isPastDate, todayDateString } = require('../utils/date');
 const { getDoctorById } = require('./doctor.service');
 
@@ -107,15 +107,17 @@ async function createAppointment({ patientId, doctorId, appointmentDate, startTi
 
   const date = parseDateOnly(appointmentDate);
 
-  const periods = await prisma.doctorAvailability.findMany({ where: { doctorId, date } });
+  const periods = await prisma.doctorAvailability.findMany({
+    where: { doctorId, date },
+    orderBy: { startTime: 'asc' },
+  });
   if (periods.length === 0) {
     throw new AppError('Doctor is not available on the selected date.', 400);
   }
 
-  // The slot must fall inside exactly one period, aligned to THAT period's
-  // own 30-minute grid (periods don't share a grid across the gap between them).
-  const containingPeriod = periods.find((p) => isAlignedToSlot(startTime, p.startTime, SLOT_DURATION_MINUTES));
-  const slots = containingPeriod ? generateSlots(containingPeriod.startTime, containingPeriod.endTime) : [];
+  // Must match the same union-of-periods slot grid the GET endpoint offers
+  // (generateAvailableSlots) — periods don't share a grid across their gap.
+  const slots = periods.flatMap((p) => generateSlots(p.startTime, p.endTime));
   const matchedSlot = slots.find((s) => s.startTime === startTime);
   if (!matchedSlot) {
     throw new AppError('Selected time is outside doctor availability.', 400);
@@ -136,14 +138,22 @@ async function createAppointment({ patientId, doctorId, appointmentDate, startTi
   }
 
   try {
-    // Transaction + the partial unique DB index together stop two patients
-    // from ever booking the same doctor/date/time, even under a race.
+    // Transaction + the partial unique DB indexes together stop two patients
+    // from booking the same doctor/date/time, and a patient from double-booking
+    // themselves at the same date/time with a different doctor, even under a race.
     const appointment = await prisma.$transaction(async (tx) => {
       const existing = await tx.appointment.findFirst({
         where: { doctorId, appointmentDate: date, startTime, status: 'BOOKED' },
       });
       if (existing) {
         throw new AppError('This appointment slot is no longer available.', 409);
+      }
+
+      const patientConflict = await tx.appointment.findFirst({
+        where: { patientId, appointmentDate: date, startTime, status: 'BOOKED' },
+      });
+      if (patientConflict) {
+        throw new AppError('You already have an appointment booked at this date and time.', 409);
       }
 
       return tx.appointment.create({
